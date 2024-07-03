@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,8 @@ public class HelloSpringServer implements HelloSpring {
                 .retrieve()
                 .bodyToFlux(User.class);
 
-        List<User> objects = Arrays.asList();
+        List<User> objects = new ArrayList<>();
+        objects.add(new User("test", 100));
 
         productFlux.subscribe(users -> objects.add(users));
 
@@ -45,6 +47,6 @@ public class HelloSpringServer implements HelloSpring {
         return Stream.of(
                 new User("Fancy Smartphone", 1),
                 new User("Cool Watch", 2),
-                new User("Smart TV", 3)).filter(user -> Objects.equals(user.getAge(), id)).limit(1).collect(Collectors.toList()).getFirst();
+                new User("Smart TV", 3)).filter(user -> Objects.equals(user.getAge(), id)).limit(1).collect(Collectors.toList()).get(0);
     }
 }

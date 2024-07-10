@@ -4,6 +4,9 @@ package com.example.springdemo.server;
 import com.example.springdemo.api.HelloClient;
 import com.example.springdemo.api.HelloSpring;
 import com.example.springdemo.vo.User;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.prometheus.metrics.core.metrics.Counter;
+import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,9 +27,19 @@ public class HelloSpringServer implements HelloSpring {
     @Autowired
     HelloClient client;
 
+    Counter visitCounter;
+
+    public HelloSpringServer() {
+        visitCounter = Counter.builder()
+                .name("spring_requests_total")
+                .help("Total number of requests")
+                .labelNames("path", "status")
+                .register();
+    }
+
     @GetMapping("/hello")
     public List<User> getUser() throws InterruptedException {
-
+        visitCounter.labelValues("/hello", "200").inc();
         Flux<User> productFlux = WebClient.create()
                 .get()
                 .uri("http://localhost:8080/hello/1")

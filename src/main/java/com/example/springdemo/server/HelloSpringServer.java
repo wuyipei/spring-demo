@@ -4,18 +4,15 @@ package com.example.springdemo.server;
 import com.example.springdemo.api.HelloClient;
 import com.example.springdemo.api.HelloSpring;
 import com.example.springdemo.vo.User;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.prometheus.metrics.core.metrics.Counter;
-import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -29,17 +26,18 @@ public class HelloSpringServer implements HelloSpring {
 
     Counter visitCounter;
 
-    public HelloSpringServer() {
-        visitCounter = Counter.builder()
-                .name("spring_requests_total")
-                .help("Total number of requests")
-                .labelNames("path", "status")
-                .register();
+    public HelloSpringServer(MeterRegistry registry) {
+        visitCounter = registry.counter("HelloSpringServer_request_count", "method", "HelloSpring");
+//        visitCounter = Counter.builder()
+//                .name("spring_requests_total")
+//                .help("Total number of requests")
+//                .labelNames("path", "status")
+//                .register();
     }
 
     @GetMapping("/hello")
     public List<User> getUser() throws InterruptedException {
-        visitCounter.labelValues("/hello", "200").inc();
+        visitCounter.increment();
         Flux<User> productFlux = WebClient.create()
                 .get()
                 .uri("http://localhost:8080/hello/1")
